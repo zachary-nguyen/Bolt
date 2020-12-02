@@ -1,4 +1,4 @@
-# bolt
+# Bolt
 A simple app that allows you to render your css/js animations to video!
 
 
