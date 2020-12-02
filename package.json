@@ -3,6 +3,7 @@
   "productName": "Bolt",
   "version": "1.0.0",
   "description": "Bolt desktop client",
+  "email": "zack.nguyen@hotmail.com",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
     "build-dll": "cross-env NODE_ENV=development webpack --config ./configs/webpack.config.renderer.dev.dll.babel.js --colors",
@@ -302,5 +303,6 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  }
+  },
+
 }
