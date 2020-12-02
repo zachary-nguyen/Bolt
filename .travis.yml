@@ -1,0 +1,85 @@
+language: node_js
+
+node_js:
+  - '12.18.3'
+
+# Always run two parallel builds: one on mac and one on linux
+# the linux build will use wine to be able to build windows and
+# linux apps
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode10.2
+      language: node_js
+      node_js: "12.18.3"
+      env:
+        - ELECTRON_CACHE=$HOME/.cache/electron
+        - ELECTRON_BUILDER_CACHE=$HOME/.cache/electron-builder
+
+    - os: linux
+      dist: trusty
+      sudo: required
+      services: docker
+      language: generic
+
+notifications:
+  email: false
+
+# cache some files for faster builds
+cache:
+  yarn: true
+  directories:
+    - node_modules
+    - $HOME/.cache/electron
+    - $HOME/.cache/electron-builder
+
+# add git lfs for large file support
+before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v2.3.1/git-lfs-$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "darwin")-amd64-2.3.1.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1
+      export PATH="/tmp/git-lfs:$PATH"
+    fi
+before_script:
+  - git lfs pull
+
+# on PRs and merges to master and prod run tests and build the app
+script:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      docker run --rm \
+        -v ${PWD}:/project \
+        -v ~/.cache/electron:/root/.cache/electron \
+        -v ~/.cache/electron-builder:/root/.cache/electron-builder \
+        electronuserland/builder:wine \
+        /bin/bash -c "yarn --link-duplicates --pure-lockfile"
+    else
+      yarn test
+    fi
+
+before_deploy:
+  - git config --local user.name "zachary-nguyen"
+  - git config --local user.email "zacharynguyen@cmail.carleton.ca"
+  - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
+  - git tag $TRAVIS_TAG
+
+# only deploy to github on a merge to the prod branch
+deploy:
+  provider: script
+  script: bash deploy.travis.sh
+  api_key:
+    secure: cz0JFUiw1BLqp3/n9c7j4ejiUuJ2yS1ufYWVFskov2RJpyZrbmc0rn3xnKmADNNmWTlsugaIM+ZxDlAcxSc8xIbakAdXxvZQpsfT3lEnBDD+Oy3IlA/AGJVdBV2XMgTxcXzn9GWrm6ocT4sQI1uYe8KAL5cuzTbGtw48MKZ67pUe/K1z1ynX4LTpdMVghYOp/AKuv7p/FW1veM0jzXUnlKF+Zz6+F3fg6HDBjGYeS+0RwdrYJ6WrfIkFLxsbPOx0ViYEMDn0CqztuULMq2/52IB7JMZwBFahdJpaELgNUoG6qEpDhGmMv5LgZ0k+NUT3RPt1hfd+rgzc/A/LJeXLctOVI5TLEEiq7M1DyduHwKHgfM3jswVm+TqDmXpEfgl8RpbSv/FbhXcC7KKpRNX8LVozmi5GLOA3q3T6oTOyCBUBegyxMlOAo/nWNpDuNNdo05WolpuRQDbgJEXRFYiLnE70iVNy5+qjDpve3Wh+FQOAS7rxFc3i8WICtqMedq9jkOxsssAd6h361Pxi4zsc7kl/nCsrSstd1OMboiOqH1hotWcYWfA1xsmj6/rr2poE/GnYcuXtO28wBFrEkRi4IP+oso36l/sf8hXkW2DaqLhMdGrScNioNQRYdUaOpBLId1dXKmLocJT/p7G53/OLmZyvLzJG76Se0remUvhvP3U=
+  file: release/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    branch: master
+
+before_cache:
+  - rm -rf $HOME/.cache/electron-builder/wine
+
+# only run this script on pull requests and merges into
+# the 'master' and 'prod' branches
+branches:
+  only:
+    - master
