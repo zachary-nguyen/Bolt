@@ -10,7 +10,6 @@ import "ace-builds/src-noconflict/mode-html";
 const useStyles = makeStyles({
   iframe: {
     width: "100%",
-    height: "100vh"
   },
   editor: {
     width: "100%"
@@ -40,20 +39,16 @@ export default function Home(): JSX.Element {
     setState({...state, css: val})
   }
 
-  const renderCode = () => {
-    // @ts-ignore
-    const doc = document.getElementById("iframe").contentDocument;
-    doc.head.innerHTML =  doc.head.innerHTML + `<style>${state.css}</style>` ;
-    // if(iframeRef.current) {
-    //   iframeRef.current.src = 'data:text/html;charset=utf-8,' + encodeURI(state.html);
-    // }
-    // if(iframeRef.current) {
-    //   const doc = iframeRef.current.contentDocument;
-    //   doc.head.innerHTML =  doc.head.innerHTML + `<style>${state.css}</style>` ;
-    //   iframeRef.current.src = 'data:text/html;charset=utf-8,' + encodeURI(state.html) ;
-    // }
+  const renderCodeHtml =  () => {
+    if(iframeRef.current) {
+      iframeRef.current.src = 'data:text/html;charset=utf-8,' + encodeURI(state.html) + encodeURI(`<script>${state.javascript}</script>`) ;
+      iframeRef.current.onload = () => {
+        // @ts-ignore
+        const doc = document.getElementById("iframe").contentDocument;
+        doc.head.innerHTML =  doc.head.innerHTML + `<style>${state.css}</style>` ;
+      }
+    }
   }
-
 
   return (
     <Grid container direction={"row"} justify={"center"} alignItems={"center"}>
@@ -81,8 +76,8 @@ export default function Home(): JSX.Element {
                    theme={"monokai"}
         />
       </Grid>
-      <Button onClick={renderCode}> Render Code</Button>
-      <iframe id="iframe" ref={iframeRef} className={classes.iframe}></iframe>
+      <Button onClick={renderCodeHtml}> Render Code</Button>
+      <iframe ref={iframeRef} id="iframe" className={classes.iframe}></iframe>
     </Grid>
   );
 }
