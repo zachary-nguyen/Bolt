@@ -1,13 +1,23 @@
 {
   "name": "bolt",
   "productName": "bolt",
+  "email": "zack.nguyen@hotmail.com",
   "version": "1.1.2",
   "description": "Bolt client",
   "main": "./main.prod.js",
+  "proxy": "http://localhost:8080",
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
     "postinstall": "yarn electron-rebuild"
   },
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "@types/express": "^4.17.9",
+    "ace-builds": "^1.4.12",
+    "axios": "^0.21.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "nodemon-webpack-plugin": "^4.3.2",
+    "react-ace": "^9.2.0"
+  }
 }

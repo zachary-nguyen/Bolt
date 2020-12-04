@@ -30,3 +30,8 @@ jobs:
         with:
           run: |
             yarn package-ci
+#            yarn lint
+#            yarn tsc
+#            yarn test
+#            yarn build-e2e
+#            yarn test-e2e
